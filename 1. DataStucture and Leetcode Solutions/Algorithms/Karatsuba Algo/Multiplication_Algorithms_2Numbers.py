@@ -34,49 +34,70 @@ addition and subtraction to compute the final result.
 
 Reference: https://en.wikipedia.org/wiki/Karatsuba_algorithm, https://youtu.be/JCbZayFr9RE?list=PLEGCF-WLh2RLHqXx6-GZr_w7LgqKDXxN_
 """
+import math 
 
-class _Multiply():
-    def __init__(self, _number1=None, _number2=None):
-        self.number1 = _number1
-        self.number2 = _number2
+class KaratsubaMultiply:
+
+    @staticmethod
+    def karatsuba(x, y):
+        # Validate inputs are integers
+        if not (isinstance(x, int) and isinstance(y, int)):
+            raise ValueError("Inputs must be integers")
         
-    def _size_base10(self, _num):
-        if _num == 0:
-            return 1  # Special case for zero
-        size = 0
-        while _num != 0:
-            size += 1
-            _num //= 10  # Integer division by 10 to remove the least significant digit
-        return size
+        # Base case    
+        if x < 10 or y < 10:
+            return x*y  
+        
+        # Maximum recursion depth 
+        if KaratsubaMultiply.max_depth_reached(KaratsubaMultiply.rdepth): 
+            return x * y
+        
+        # Calculate size 
+        n = max(len(str(x)),len(str(y))) 
+        KaratsubaMultiply.rdepth += 1
+        
+        # Split numbers  
+        nby2 = n // 2
+        a, b = KaratsubaMultiply.split_number(x, nby2)
+        c, d = KaratsubaMultiply.split_number(y, nby2)
+        
+        # Recursive calls 
+        ac = KaratsubaMultiply.karatsuba(a,c)  
+        bd = KaratsubaMultiply.karatsuba(b,d)
+        ad_plus_bc = KaratsubaMultiply.karatsuba(a+b, c+d) - ac - bd
+        
+        # Combine results
+        prod = ac * 10**(2*nby2) + (ad_plus_bc * 10**nby2) + bd    
+        
+        KaratsubaMultiply.rdepth -= 1
+        
+        return prod
+
+    @staticmethod
+    def split_number(x, n):    
+        # Splits x into two halves 
+        return x // 10**n, x % 10**n
     
-    def _split_at(self, _num, _length):
-        _mid = _length//2
-        if _length % 2 == 0:  # If the number has an even number of digits
-            first_part = _num // (10 ** _mid)
-            second_part = _num % (10 ** _mid)
-        else:  # If the number has an odd number of digits
-            first_part = _num // (10 ** (_mid + 1))
-            second_part = _num % (10 ** _mid)
-        return first_part, second_part
+    @staticmethod 
+    def int_to_str(x):
+        # Convert int to string to manipulate digits
+        return str(x)
+    
+    @staticmethod 
+    def str_to_int(x):
+       # Convert string back to int
+       return int(x)
+       
+    @staticmethod
+    def max_depth_reached(d):
+         # Detect recursion depth limit 
+         return d >= 1000  
+         
+    # Static var to track recursion depth
+    rdepth = 0
         
-    def _Karatsuba_Method(self, _number1, _number2): #Algorithm with O(n^log_{2}3) by Karatsuba
-        if _number1 < 10 or _number2 < 10:
-            return _number1 * _number2
+if __name__ == '__main__':
+    x = 3141592653589793238462643383279502884197169399375105820974944592  
+    y = 2718281828459045235360287471352662497757247093699959574966967627
 
-        # Calculates the size of the numbers.
-        _size_num1 = self._size_base10(_number1)
-        _size_num2 = self._size_base10(_number2)
-        m = max(_size_num1, _size_num2)
-        m2 = m // 2
-        high1, low1 = self._split_at(_number1, m)
-        high2, low2 = self._split_at(_number2, m)
-
-        z0 = self._Karatsuba_Method(low1, low2)
-        z1 = self._Karatsuba_Method((low1 + high1), (low2 + high2))
-        z2 = self._Karatsuba_Method(high1, high2)
-        result = (z2 * 10**(m2 * 2)) + ((z1 - z2 - z0) * 10**m2) + z0
-        return result
-
-multiply = _Multiply()
-k = multiply._Karatsuba_Method(1234, 5678)
-print(k)
+    print(KaratsubaMultiply.karatsuba(x,y))
